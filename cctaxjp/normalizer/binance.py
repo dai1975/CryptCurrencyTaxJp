@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 
 import csv
+from decimal import Decimal
 from datetime import datetime
 import cctaxjp
 
@@ -23,6 +24,9 @@ COINS = {
     "CMT": CoinInfo('CMT', cctaxjp.CoinName.CMT, 100),
 }
 
+def d(s):
+    return None if s == '' else Decimal(s)
+
 def normalize(f, opts):
     reader = csv.reader(f)
     pairs = []
@@ -42,26 +46,23 @@ def normalize(f, opts):
             p = pairs[i]
             p[rows[2]] = (COINS[rows[3]], rows[4]) # (coin, amount(string))
             if (i == 0) and (p['Buy'] is not None) and (p['Sell'] is not None) and (p['Fee'] is not None):
-                r = cctaxjp.Record('Binance', datetime=p['datetime'])
-                r.gain = cctaxjp.Delta(p['Buy'][0].general_name, p['Buy'][1], fee=p['Fee'][1])
-                r.lose = cctaxjp.Delta(p['Sell'][0].general_name, p['Sell'][1])
-                r.rtype = cctaxjp.RecordType.SELL if p['Buy'][0].rank < p['Sell'][0].rank else cctaxjp.RecordType.BUY
+                r = cctaxjp.Record(dt, 'Binance', '', cctaxjp.RecordType.BUY, p['Buy'][0].general_name, d(p['Buy'][1]), d(p['Fee'][1]))
+                print(r.format())
+                r = cctaxjp.Record(dt, 'Binance', '', cctaxjp.RecordType.SELL, p['Sell'][0].general_name, d(p['Sell'][1]))
+                print(r.format())
                 pairs.pop(0)
             else:
                 continue
         elif rows[2] == 'Deposit':
-            r = cctaxjp.Record('Binance', datetime=dt)
-            r.rtype = cctaxjp.RecordType.DEPOSIT
-            r.gain = cctaxjp.Delta(rows[3], rows[4])
+            r = cctaxjp.Record(dt, 'Binance', '', cctaxjp.RecordType.DEPOSIT, rows[3], d(rows[4]))
+            print(r.format())
         elif rows[2] == 'Withdraw':
-            r = cctaxjp.Record('Binance', datetime=dt)
-            r.rtype = cctaxjp.RecordType.WITHDRAWAL
-            r.lose = cctaxjp.Delta(rows[3], rows[4])
+            r = cctaxjp.Record(dt, 'Binance', '', cctaxjp.RecordType.WITHDRAWAL, rows[3], d(rows[4]))
+            print(r.format())
         elif rows[2] == 'Small assets exchange BNB':
             if opts['debug']: print("Skip BNB exchange because it maybe merged at line %d" % line)
             continue
         else:
             raise RuntimeError("unknown record type %s at %d" % (rows[2], line))
-        print(r.format())
 
 #if __name__ == '__main__':

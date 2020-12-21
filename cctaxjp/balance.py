@@ -9,17 +9,15 @@ import cctaxjp
 class Balance:
     def __init__(self):
         pass
-    def delta(self, d):
-        b = Decimal('0') if d.coin not in self.balance else self.balance[d.coin]
-        if d.amount is not None: b += d.amount
-        if d.fee is not None: b += d.fee
+    def delta(self, r):
+        b = Decimal('0') if r.coin not in self.balance else self.balance[r.coin]
+        if r.amount is not None: b += r.amount
+        if r.fee is not None: b += r.fee
         if b < 0 and d.coin not in self.warn:
-            print('WARN: %s balance is minus line at %d' % (d.coin, self.line))
-            self.warn[d.coin] = True
-        self.balance[d.coin] = b
-        d.balance = b
-        #print(d.coin + ': ' + str(self.balance[d.coin]))
-        return d
+            print('WARN: %s balance is minus line at %d' % (r.coin, self.line))
+        self.balance[r.coin] = b
+        r.balance = b
+        return r
 
     def parse(self, f):
         reader = csv.reader(f)
@@ -31,10 +29,8 @@ class Balance:
             r = cctaxjp.Record.parse(rows)
             if r is None: continue
 
-            if r.gain.coin is not None:
-                self.delta(r.gain)
-            if r.lose.coin is not None:
-                self.delta(r.lose)
+            if r.coin is not None:
+                self.delta(r)
             print(r.format())
         for k,v in self.balance.items():
             if 0 < v: print("{} {}".format(k,v))
