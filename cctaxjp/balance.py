@@ -12,9 +12,12 @@ class Balance:
     def delta(self, r):
         b = Decimal('0') if r.coin not in self.balance else self.balance[r.coin]
         if r.amount is not None: b += r.amount
-        if r.fee is not None: b += r.fee
-        if b < 0 and d.coin not in self.warn:
-            print('WARN: %s balance is minus line at %d' % (r.coin, self.line))
+        if r.exfee is not None: b += r.exfee
+        if b < 0 and r.coin not in self.warn:
+            if r.source == 'Bitfinex' and r.rtype in [ cctaxjp.RecordType.FEE, cctaxjp.RecordType.SETTLEMENT ]:
+                pass
+            else:
+                print('WARN: %s balance is minus line at %d' % (r.coin, self.line))
         self.balance[r.coin] = b
         r.balance = b
         return r
@@ -27,8 +30,8 @@ class Balance:
         for rows in reader:
             self.line += 1
             r = cctaxjp.Record.parse(rows)
-            if r is None: continue
-
+            if r is None:
+                continue
             if r.coin is not None:
                 self.delta(r)
             print(r.format())

@@ -5,6 +5,7 @@ import importlib
 
 NORMALIZERS = [
     'binance',
+    'bitfinex',
 ]
 
 def normalize(typ, with_header, debug, files):

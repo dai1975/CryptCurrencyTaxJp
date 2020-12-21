@@ -38,21 +38,21 @@ def normalize(f, opts):
 
         dt = parse_datetime(rows[0])
 
-        if rows[2] == 'Buy' or rows[2] == 'Sell' or rows[2] == 'Fee':
+        if rows[2] in ['Buy', 'Sell', 'Fee', 'InFee']:
             i = next((i for i,p in enumerate(pairs) if p[rows[2]] is None), None)
             if i is None:
                 i = len(pairs)
-                pairs.append({ 'datetime': dt, 'Buy': None, 'Sell': None, 'Fee': None })
+                pairs.append({ 'datetime': dt, 'Buy': None, 'Sell': None, 'Fee': None, 'InFee': None })
             p = pairs[i]
             p[rows[2]] = (COINS[rows[3]], rows[4]) # (coin, amount(string))
-            if (i == 0) and (p['Buy'] is not None) and (p['Sell'] is not None) and (p['Fee'] is not None):
-                r = cctaxjp.Record(dt, 'Binance', '', cctaxjp.RecordType.BUY, p['Buy'][0].general_name, d(p['Buy'][1]), d(p['Fee'][1]))
+            if (i == 0) and (p['Buy'] is not None) and (p['Sell'] is not None) and (p['Fee'] is not None or p['InFee'] is not None):
+                r = cctaxjp.Record(dt, 'Binance', '', cctaxjp.RecordType.EXCHANGE, p['Buy'][0].general_name, d(p['Buy'][1]))
+                if p['Fee'] is not None: r.exfee = d(p['Fee'][1])
+                if p['InFee'] is not None: r.infee = d(p['InFee'][1])
                 print(r.format())
-                r = cctaxjp.Record(dt, 'Binance', '', cctaxjp.RecordType.SELL, p['Sell'][0].general_name, d(p['Sell'][1]))
+                r = cctaxjp.Record(dt, 'Binance', '', cctaxjp.RecordType.EXCHANGE, p['Sell'][0].general_name, d(p['Sell'][1]))
                 print(r.format())
                 pairs.pop(0)
-            else:
-                continue
         elif rows[2] == 'Deposit':
             r = cctaxjp.Record(dt, 'Binance', '', cctaxjp.RecordType.DEPOSIT, rows[3], d(rows[4]))
             print(r.format())
@@ -61,7 +61,9 @@ def normalize(f, opts):
             print(r.format())
         elif rows[2] == 'Small assets exchange BNB':
             if opts['debug']: print("Skip BNB exchange because it maybe merged at line %d" % line)
-            continue
+        elif rows[2] == 'Adjust':
+            r = cctaxjp.Record(dt, 'Binance', '', cctaxjp.RecordType.ADJUST, rows[3], d(rows[4]))
+            print(r.format())
         else:
             raise RuntimeError("unknown record type %s at %d" % (rows[2], line))
 

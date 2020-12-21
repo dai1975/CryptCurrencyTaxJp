@@ -10,14 +10,16 @@ from .normalizer import normalize
 from .balance import calc_balance
 
 class RecordType:
-    BUY = 'BUY'
-    SELL = 'SELL'
+    ADJUST = 'ADJUST'
+    EXCHANGE = 'EXCHANGE'
+    FEE = 'FEE'
     WITHDRAWAL = 'WITHDRAWAL'
     DEPOSIT = 'DEPOSIT'
     MINING = 'MINING'
     AIRDROP = 'AIRDROP'
     LENDING = 'LENDING'
-    ALL = [ BUY, SELL, WITHDRAWAL, DEPOSIT, MINING, AIRDROP, LENDING ]
+    SETTLEMENT = 'SETTLEMENT'
+    ALL = [ ADJUST, EXCHANGE, FEE, WITHDRAWAL, DEPOSIT, MINING, AIRDROP, LENDING, SETTLEMENT ]
 
 class CoinName:
     DNT = 'DNT'
@@ -29,7 +31,8 @@ class CoinName:
     BNB = 'BNB'
     USD = 'USD'
     ETH = 'ETH'
-    ALL = [ DNT, BTC, TRIG, ELF, CMT, XRP, BNB, USD ]
+    IOTA = 'IOTA'
+    ALL = [ DNT, BTC, TRIG, ELF, CMT, XRP, BNB, USD, ETH, IOTA ]
 
 def f(f, *args):
     a = [ "" if a is None else a for a in args ]
@@ -39,7 +42,7 @@ def p(f, p, *args):
     return f.format(*a)
 
 class Record:
-    def __init__(self, datetime=None, source=None, rid=None, rtype=None, coin=None, amount=None, fee=None, balance=None, value=None, profit=None, cost=None):
+    def __init__(self, datetime=None, source=None, rid=None, rtype=None, coin=None, amount=None, infee=None, exfee=None, balance=None, value=None, profit=None, cost=None):
         if (rtype is not None): RecordType.ALL.index(rtype) # raise ValueError
         if (coin is not None and coin != ''): CoinName.ALL.index(coin) # raise ValueError
         self.datetime = datetime
@@ -48,7 +51,8 @@ class Record:
         self.rtype = rtype
         self.coin = coin
         self.amount = amount
-        self.fee = fee
+        self.infee = infee
+        self.exfee = exfee
         self.balance = balance
         self.value = value
         self.profit = value
@@ -57,12 +61,12 @@ class Record:
     @classmethod
     def header(cls):
         return f("{},{},{},{},{},{},{},{}",
-                 'datetime', 'source', 'id', 'type', 'coin', 'amount', 'fee', 'balance', 'value', 'profit', 'cost')
+                 'datetime', 'source', 'id', 'type', 'coin', 'amount', 'infee', 'exfee', 'balance', 'value', 'profit', 'cost')
 
     def format(self):
         dt = "" if self.datetime is None else self.datetime.isoformat()
-        return f("{},{},{},{},{},{},{},{},{},{},{}",
-                 dt, self.source, self.rid, self.rtype, self.coin, self.amount, self.fee, self.balance, self.value, self.profit, self.cost)
+        return f("{},{},{},{},{},{},{},{},{},{},{},{}",
+                 dt, self.source, self.rid, self.rtype, self.coin, self.amount, self.infee, self.exfee, self.balance, self.value, self.profit, self.cost)
 
     @classmethod
     def parse(cls, rows):
@@ -75,9 +79,10 @@ class Record:
             rtype    = None if rows[3] == '' else rows[3],
             coin     = None if rows[4] == '' else rows[4],
             amount   = None if rows[5] == '' else Decimal(rows[5]),
-            fee      = None if rows[6] == '' else Decimal(rows[6]),
-            balance  = None if rows[7] == '' else Decimal(rows[7]),
-            value    = None if rows[8] == '' else Decimal(rows[8]),
-            profit   = None if rows[9] == '' else Decimal(rows[9]),
-            cost     = None if rows[10] == '' else Decimal(rows[10])
+            infee    = None if rows[6] == '' else Decimal(rows[6]),
+            exfee    = None if rows[7] == '' else Decimal(rows[7]),
+            balance  = None if rows[8] == '' else Decimal(rows[8]),
+            value    = None if rows[9] == '' else Decimal(rows[9]),
+            profit   = None if rows[10] == '' else Decimal(rows[10]),
+            cost     = None if rows[11] == '' else Decimal(rows[11])
         )
