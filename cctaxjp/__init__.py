@@ -22,17 +22,49 @@ class RecordType:
     ALL = [ ADJUST, EXCHANGE, FEE, WITHDRAWAL, DEPOSIT, MINING, AIRDROP, LENDING, SETTLEMENT ]
 
 class CoinName:
-    DNT = 'DNT'
-    BTC = 'BTC'
-    TRIG = 'TRIG'
-    ELF = 'ELF'
-    CMT = 'CMT'
-    XRP = 'XRP'
-    BNB = 'BNB'
+    # fiat
     USD = 'USD'
+    USDT = 'USDT'
+    JPY = 'JPY'
+
+    # base
+    BTC = 'BTC'
+    BNB = 'BNB'
     ETH = 'ETH'
-    IOTA = 'IOTA'
-    ALL = [ DNT, BTC, TRIG, ELF, CMT, XRP, BNB, USD, ETH, IOTA ]
+    DOGE = 'DOGE'
+
+    # major
+    BCH = 'BCH'
+    ETC = 'ETC'
+    LTC = 'LTC'
+    XRP = 'XRP'
+    XEM = 'XEM'
+
+    # minor
+    ARDR = 'ARDR'
+    BCN = 'BCN'
+    BTS = 'BTS'
+    BTT = 'BTT'
+    DASH = 'DASH'
+    DGB = 'DGB'
+    FCT = 'FCT'
+    GAME = 'GAME'
+    GNO = 'GNO'
+    GNT = 'GNT'
+    LSK = 'LSK'
+    NXT = 'NXT'
+    SC = 'SC'
+    STR = 'STR'
+    XMR = 'XMR'
+    ZEC = 'ZEC'
+    ZRX = 'ZRX'
+
+    ALL = [
+        USD, USDT, JPY,
+        BTC, BNB, ETH, DOGE,
+        BCH, ETC, LTC, XRP, XEM,
+        ARDR, BCN, BTS, BTT, DASH, DGB, FCT, GAME, GNO, GNT, LSK, NXT, SC, STR, XMR, ZEC, ZRX,
+    ]
 
 def f(f, *args):
     a = [ "" if a is None else a for a in args ]
@@ -45,18 +77,19 @@ class Record:
     def __init__(self, datetime=None, source=None, rid=None, rtype=None, coin=None, amount=None, infee=None, exfee=None, balance=None, value=None, profit=None, cost=None):
         if (rtype is not None): RecordType.ALL.index(rtype) # raise ValueError
         if (coin is not None and coin != ''): CoinName.ALL.index(coin) # raise ValueError
+        def as_decimal(x): return x if type(x) in (type(None), Decimal) else Decimal(x)
         self.datetime = datetime
         self.source = source
         self.rid = rid
         self.rtype = rtype
         self.coin = coin
-        self.amount = amount
-        self.infee = infee
-        self.exfee = exfee
-        self.balance = balance
-        self.value = value
-        self.profit = value
-        self.cost = cost
+        self.amount = as_decimal(amount)
+        self.infee = as_decimal(infee)
+        self.exfee = as_decimal(exfee)
+        self.balance = as_decimal(balance)
+        self.value = as_decimal(value)
+        self.profit = as_decimal(value)
+        self.cost = as_decimal(cost)
 
     @classmethod
     def header(cls):
@@ -65,8 +98,9 @@ class Record:
 
     def format(self):
         dt = "" if self.datetime is None else self.datetime.isoformat()
+        def d(x): return '' if x is None else '{0:f}'.format(x)
         return f("{},{},{},{},{},{},{},{},{},{},{},{}",
-                 dt, self.source, self.rid, self.rtype, self.coin, self.amount, self.infee, self.exfee, self.balance, self.value, self.profit, self.cost)
+                 dt, self.source, self.rid, self.rtype, self.coin, d(self.amount), d(self.infee), d(self.exfee), d(self.balance), d(self.value), d(self.profit), d(self.cost))
 
     @classmethod
     def parse(cls, rows):

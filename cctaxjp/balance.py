@@ -4,6 +4,7 @@
 import csv
 from datetime import datetime
 from decimal import Decimal
+import decimal
 import cctaxjp
 
 class Balance:
@@ -36,7 +37,7 @@ class Balance:
                 self.delta(r)
             print(r.format())
         for k,v in self.balance.items():
-            if 0 < v: print("{} {}".format(k,v))
+            if 0 != v: print("{} {}".format(k,v))
 
 def calc_balance(f):
     Balance().parse(f)
