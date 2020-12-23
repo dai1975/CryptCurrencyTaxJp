@@ -4,7 +4,7 @@ import csv
 from datetime import datetime
 from decimal import Decimal
 
-from .normalizer import NORMALIZERS
+from .coin import CoinName
 from .normalizer import normalize
 
 from .balance import calc_balance
@@ -12,59 +12,22 @@ from .balance import calc_balance
 class RecordType:
     ADJUST = 'ADJUST'
     EXCHANGE = 'EXCHANGE'
-    FEE = 'FEE'
+    INFEE = 'INFEE'
+    EXFEE = 'EXFEE'
     WITHDRAWAL = 'WITHDRAWAL'
     DEPOSIT = 'DEPOSIT'
     MINING = 'MINING'
     AIRDROP = 'AIRDROP'
     LENDING = 'LENDING'
     SETTLEMENT = 'SETTLEMENT'
-    ALL = [ ADJUST, EXCHANGE, FEE, WITHDRAWAL, DEPOSIT, MINING, AIRDROP, LENDING, SETTLEMENT ]
 
-class CoinName:
-    # fiat
-    USD = 'USD'
-    USDT = 'USDT'
-    JPY = 'JPY'
-
-    # base
-    BTC = 'BTC'
-    BNB = 'BNB'
-    ETH = 'ETH'
-    DOGE = 'DOGE'
-
-    # major
-    BCH = 'BCH'
-    ETC = 'ETC'
-    LTC = 'LTC'
-    XRP = 'XRP'
-    XEM = 'XEM'
-
-    # minor
-    ARDR = 'ARDR'
-    BCN = 'BCN'
-    BTS = 'BTS'
-    BTT = 'BTT'
-    DASH = 'DASH'
-    DGB = 'DGB'
-    FCT = 'FCT'
-    GAME = 'GAME'
-    GNO = 'GNO'
-    GNT = 'GNT'
-    LSK = 'LSK'
-    NXT = 'NXT'
-    SC = 'SC'
-    STR = 'STR'
-    XMR = 'XMR'
-    ZEC = 'ZEC'
-    ZRX = 'ZRX'
-
-    ALL = [
-        USD, USDT, JPY,
-        BTC, BNB, ETH, DOGE,
-        BCH, ETC, LTC, XRP, XEM,
-        ARDR, BCN, BTS, BTT, DASH, DGB, FCT, GAME, GNO, GNT, LSK, NXT, SC, STR, XMR, ZEC, ZRX,
-    ]
+    @classmethod
+    def check_value(cls, x):
+        x = x.upper()
+        if x in vars(cls).values():
+            return x
+        else:
+            raise ValueError("{} is not defined in RecordType".format(x))
 
 def f(f, *args):
     a = [ "" if a is None else a for a in args ]
@@ -75,8 +38,8 @@ def p(f, p, *args):
 
 class Record:
     def __init__(self, datetime=None, source=None, rid=None, rtype=None, coin=None, amount=None, infee=None, exfee=None, balance=None, value=None, profit=None, cost=None):
-        if (rtype is not None): RecordType.ALL.index(rtype) # raise ValueError
-        if (coin is not None and coin != ''): CoinName.ALL.index(coin) # raise ValueError
+        if (rtype is not None): RecordType.check_value(rtype) # raise ValueError
+        if (coin is not None): CoinName.check_value(coin) # raise ValueError
         def as_decimal(x): return x if type(x) in (type(None), Decimal) else Decimal(x)
         self.datetime = datetime
         self.source = source
