@@ -30,12 +30,27 @@ class Balance:
         self.line = 0
         for rows in reader:
             self.line += 1
-            r = cctaxjp.Record.parse(rows)
-            if r is None:
-                continue
-            if r.coin is not None:
+            logger = lambda s: print("{} at line {} in {}: {}".format(s, f.name, self.line, ",".join(rows)))
+            try:
+                r = cctaxjp.Record.parse(rows)
+                if r is None:
+                    continue
+                if r.coin is None:
+                    raise RuntimeError('coin is empty')
+                if r.infee is not None and r.infee < 0:
+                    raise RuntimeError('infee must be greater than or equal to 0: {}'.format(r.infee))
+                if r.exfee is not None and r.exfee < 0:
+                    raise RuntimeError('exfee must be greater than or equal to 0: {}'.format(r.exfee))
+                if r.rtype is not None:
+                    if r.amount < 0 and r.rtype in [ cctaxjp.RecordType.DEPOSIT, cctaxjp.RecordType.MINING, cctaxjp.RecordType.AIRDROP, cctaxjp.RecordType.LENDING ]:
+                        raise RuntimeError('{} must be greater than or equal to 0: {}'.format(r.rtype, r.amount))
+                    elif 0 < r.amount and r.rtype in [ cctaxjp.RecordType.INFEE, cctaxjp.RecordType.EXFEE, cctaxjp.RecordType.WITHDRAWAL ]:
+                        raise RuntimeError('{} must be less than or equal to 0: {}'.format(r.rtype, r.amount))
                 self.delta(r)
-            print(r.format())
+                print(r.format())
+            except Exception as e:
+                logger("ERROR: " + str(e))
+                raise
         for k,v in self.balance.items():
             if 0 != v: print("{} {}".format(k,v))
 

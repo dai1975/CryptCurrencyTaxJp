@@ -9,7 +9,7 @@ import cctaxjp
 def parse_datetime(s):
     return datetime.strptime(s+"+0000", "%Y-%m-%d %H:%M:%S%z")
 def coinname(s):
-    cctaxjp.CoinName.check_value(s)
+    return cctaxjp.CoinName.check_value(s)
 
 def d(s):
     return None if s == '' else Decimal(s)

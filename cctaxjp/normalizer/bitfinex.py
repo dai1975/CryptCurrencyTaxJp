@@ -15,7 +15,7 @@ def coinname(s):
     if s == 'IOT':
         return cctaxjp.CoinName.IOTA
     else:
-        cctaxjp.CoinName.check_value(s)
+        return cctaxjp.CoinName.check_value(s)
 
 def normalize(rows, ctx, opts):
     r = cctaxjp.Record(

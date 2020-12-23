@@ -34,7 +34,6 @@ def normalize(with_header, debug, files):
 
             logger = lambda s: print("{} at line {} in {}".format(s, f.name, line))
             try:
-                print(",".join(rows))
                 records, ctx = func(rows, ctx, dict({ "logger":logger, "filename":f.name, "line":line }, **opts))
                 for r in records:
                     print(r.format())
