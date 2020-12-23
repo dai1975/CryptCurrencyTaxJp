@@ -9,6 +9,14 @@ MODULES = [
     'custom', 'bittrex', 'binance', 'bitfinex', 'poloniex'
 ]
 
+def normalize_source(s):
+    u = s.lower()
+    if u == 'binance': return 'Binance'
+    elif u == 'bitfinex': return 'Bitfinex'
+    elif u == 'bittrex': return 'Bittrex'
+    elif u == 'poloniex': return 'Poloniex'
+    else: return s
+
 modules = [ importlib.import_module('cctaxjp.normalizer.%s' % m) for m in MODULES ]
 
 def normalize(with_header, debug, files):

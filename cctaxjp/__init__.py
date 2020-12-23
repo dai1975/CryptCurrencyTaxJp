@@ -1,11 +1,11 @@
 # -*- coding: utf-8 -*-
 
 import csv
-from datetime import datetime
+from datetime import datetime, timezone
 from decimal import Decimal
 
 from .coin import CoinName
-from .normalizer import normalize
+from .normalizer import normalize, normalize_source
 
 from .balance import calc_balance
 
@@ -40,9 +40,11 @@ class Record:
     def __init__(self, datetime=None, source=None, rid=None, rtype=None, coin=None, amount=None, infee=None, exfee=None, balance=None, value=None, profit=None, cost=None):
         if (rtype is not None): RecordType.check_value(rtype) # raise ValueError
         if (coin is not None): CoinName.check_value(coin) # raise ValueError
-        def as_decimal(x): return x if type(x) in (type(None), Decimal) else Decimal(x)
-        self.datetime = datetime
-        self.source = source
+        #def as_decimal(x): return x if type(x) in (type(None), Decimal) else Decimal(x)
+        def as_decimal(x): return x if type(x) in (type(None), Decimal) else None if x == '' else Decimal(x)
+
+        self.datetime = datetime.astimezone(timezone.utc)
+        self.source = normalize_source(source)
         self.rid = rid
         self.rtype = rtype
         self.coin = coin

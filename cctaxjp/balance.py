@@ -37,10 +37,10 @@ class Balance:
                     continue
                 if r.coin is None:
                     raise RuntimeError('coin is empty')
-                if r.infee is not None and r.infee < 0:
-                    raise RuntimeError('infee must be greater than or equal to 0: {}'.format(r.infee))
-                if r.exfee is not None and r.exfee < 0:
-                    raise RuntimeError('exfee must be greater than or equal to 0: {}'.format(r.exfee))
+                if r.infee is not None and 0 < r.infee:
+                    raise RuntimeError('infee must be less than or equal to 0: {}'.format(r.infee))
+                if r.exfee is not None and 0 < r.exfee:
+                    raise RuntimeError('exfee must be less than or equal to 0: {}'.format(r.exfee))
                 if r.rtype is not None:
                     if r.amount < 0 and r.rtype in [ cctaxjp.RecordType.DEPOSIT, cctaxjp.RecordType.MINING, cctaxjp.RecordType.AIRDROP, cctaxjp.RecordType.LENDING ]:
                         raise RuntimeError('{} must be greater than or equal to 0: {}'.format(r.rtype, r.amount))

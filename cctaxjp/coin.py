@@ -10,6 +10,7 @@ class CoinName:
     # minor
     ADA = 'ADA'
     ADX = 'ADX'
+    ANS = 'ANS'
     ARDR = 'ARDR'
     ARK = 'ARK'
     BAT = 'BAT'
