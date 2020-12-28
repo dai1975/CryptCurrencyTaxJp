@@ -1,0 +1,20 @@
+
+* normalizer/input/現物
+ o binance
+ o bitfinex
+ o bittrex
+ - bitflyer
+ o custom
+ o poloniex
+
+* normalizer/input/信用,証拠金,差金
+ - bitmex
+ - bitflyer
+
+* 残高計算
+ o 残高
+
+* 損益および税金計算
+ - 移動平均法
+ - 総平均法
+
