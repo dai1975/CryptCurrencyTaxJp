@@ -5,34 +5,41 @@ import importlib
 import csv
 import cctaxjp
 
-MODULES = [
-    'custom', 'bittrex', 'binance', 'bitfinex', 'poloniex'
+IN_MODULES = [
+    'custom', 'bittrex', 'binance', 'bitfinex', 'poloniex', 'etherscan',
+]
+OUT_MODULES = [
+    'gtax',
 ]
 
-def normalize_source(s):
-    u = s.lower()
-    if u == 'binance': return 'Binance'
-    elif u == 'bitfinex': return 'Bitfinex'
-    elif u == 'bittrex': return 'Bittrex'
-    elif u == 'poloniex': return 'Poloniex'
-    else: return s
+in_modules = [ importlib.import_module('cctaxjp.normalizer.%s' % m) for m in IN_MODULES ]
+out_modules = { m: importlib.import_module('cctaxjp.normalizer.%s' % m) for m in OUT_MODULES }
 
-modules = [ importlib.import_module('cctaxjp.normalizer.%s' % m) for m in MODULES ]
+def get_formatter(of):
+    if of == None:
+        h = lambda: cctaxjp.Record.header()
+        f = lambda r: r.format()
+        return (h,f)
+    else:
+        m = out_modules[of]
+        return (m.header, m.format)
 
-def normalize(with_header, debug, files):
+def normalize(out_format, with_header, debug, files):
     opts = {
         'with_header': with_header,
         'debug': debug,
     }
-    if opts['with_header']: print(cctaxjp.Record.header())
+    formatter = get_formatter(out_format)
+    if opts['with_header'] or formatter is not None: print(formatter[0]())
     for f in files:
         header = f.readline().rstrip("\r\n")
         func = None
         if header == '': continue
-        for m in modules:
+        for m in in_modules:
             func = m.get_normalizer(header)
             if func is not None: break
         if func is None:
+            print(header)
             raise RuntimeError("cannot detect format of file: " + f.name)
         line = 1
         ctx = None
@@ -44,8 +51,7 @@ def normalize(with_header, debug, files):
             try:
                 records, ctx = func(rows, ctx, dict({ "logger":logger, "filename":f.name, "line":line }, **opts))
                 for r in records:
-                    print(r.format())
+                    print(formatter[1](r))
             except Exception as e:
                 logger("ERROR: " + str(e))
                 raise
-
